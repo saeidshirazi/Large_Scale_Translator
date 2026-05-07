@@ -1,29 +1,65 @@
-
-
 # Excel Translator to Persian 🇮🇷
 
-A fast and optimized Python tool for translating large Excel (`.xlsx`) files into Persian using Google Translate.
+Fast, resumable, async Excel (`.xlsx`) translator for huge datasets using Google Translate.
 
-This project is designed for:
-- Huge Excel files
+Built for:
+- Massive Excel files
 - Hundreds of thousands of rows
-- Fast parallel translation
-- Progress tracking
-- Batch processing
-- Low memory overhead
+- Smart batching
+- Automatic text detection
+- Async parallel translation
+- Translation caching
+- Beautiful terminal UI with Rich
 
 ---
 
 # Features
 
-✅ Translate entire `.xlsx` files to Persian  
-✅ Optimized for very large datasets  
-✅ Parallel translation using asyncio + threading  
-✅ Batch translation for huge speed improvements  
-✅ Progress bar with `tqdm`  
+✅ Translate large `.xlsx` files into Persian  
+✅ Async parallel translation engine  
+✅ Smart batching based on character limits  
+✅ Automatic detection of translatable text  
+✅ Skips:
+- numbers
+- IDs
+- URLs
+- codes
+- chemical formulas
+- mostly numeric strings
+
+✅ Persistent cache system (resume anytime)  
+✅ Automatic retry with exponential backoff  
+✅ Fancy interactive terminal UI using Rich  
+✅ Progress bars with speed metrics  
 ✅ Test mode for quick validation  
-✅ Preserves Excel structure and columns  
-✅ Automatically skips duplicate translations  
+✅ Works well with huge datasets  
+
+---
+
+# Demo
+
+```text
+╭────────────────────────────────────╮
+│ Excel Translator to Persian 🇮🇷 │
+│ Fast • Cached • Async • Resumable │
+╰────────────────────────────────────╯
+
+Loading Excel file...
+FULL DOCUMENT MODE ENABLED
+
+Translation Statistics
+╭───────────────────────┬──────────╮
+│ Metric                │ Value    │
+├───────────────────────┼──────────┤
+│ New Texts To Translate│ 299,736  │
+│ Cached Translations   │ 120,443  │
+│ Max Chars/Batch       │ 4500     │
+│ Concurrent Tasks      │ 8        │
+│ Auto-Retry Logic      │ Enabled  │
+╰───────────────────────┴──────────╯
+
+🚀 Racing... ━━━━━━━━━━━━━━━━ 52%
+```
 
 ---
 
@@ -32,51 +68,63 @@ This project is designed for:
 Install dependencies:
 
 ```bash
-pip install pandas openpyxl deep-translator tqdm
+pip install pandas openpyxl deep-translator rich
 ```
 
 ---
 
 # Usage
 
-Place your Excel file in the same directory.
+Place your Excel file in the same directory as the script.
 
 Example:
 
 ```text
-unspsc.xlsx
-translator.py
+project/
+│
+├── Translator.py
+├── unspsc.xlsx
 ```
 
 Run:
 
 ```bash
-python translator.py
+python Translator.py
+```
+
+Output:
+
+```text
+unspsc_persian.xlsx
 ```
 
 ---
 
 # Configuration
 
-Inside the script:
+Edit the configuration section inside the script:
 
 ```python
 INPUT_FILE = "unspsc.xlsx"
 OUTPUT_FILE = "unspsc_persian.xlsx"
+
+CACHE_FILE = "translation_cache.json"
 ```
 
 ---
 
 # Test Mode
 
-Translate only first few rows for testing:
+Quickly test the translator on a few rows.
+
+Enable:
 
 ```python
 TEST_MODE = True
-TEST_ROWS = 10
+TEST_ROWS = 100
 ```
 
-For full translation:
+Disable for full translation:
 
 ```python
 TEST_MODE = False
@@ -86,100 +134,137 @@ TEST_MODE = False
 
 # Performance Settings
 
-You can tune performance here:
-
 ```python
-BATCH_SIZE = 20
-CONCURRENT_TASKS = 20
+MAX_CHARS_PER_BATCH = 4500
+CONCURRENT_TASKS = 8
+MAX_RETRIES = 5
+BACKOFF_FACTOR = 2
 ```
 
-Recommended values:
+## Recommended Values
 
-| Internet Speed | BATCH_SIZE | CONCURRENT_TASKS |
-|---|---|---|
-| Slow | 10 | 10 |
-| Medium | 20 | 20 |
-| Fast | 30 | 30 |
+| System/Internet | Concurrent Tasks |
+|---|---|
+| Slow Internet | 3–5 |
+| Normal Internet | 5–8 |
+| Fast Internet | 8–12 |
 
-⚠ Very high concurrency may trigger Google rate limiting.
+⚠ Very high concurrency may trigger Google rate limits.
 
 ---
 
-# How It Works
+# Smart Optimizations
 
-The tool:
+The translator automatically:
 
-1. Loads the Excel file
-2. Extracts all unique text values
-3. Translates texts in batches
-4. Uses async concurrency for speed
-5. Applies translations back to the dataframe
-6. Saves translated `.xlsx`
+## Detects Real Text
 
-This dramatically reduces translation requests.
+It skips:
+- numbers
+- short tokens
+- URLs
+- IDs
+- chemical formulas
+- mostly numeric strings
 
-Example:
-
-Instead of:
+Example skipped values:
 
 ```text
-300,000 API requests
+12345
+AB-991-X
+https://example.com
+C6H12O6
 ```
 
-It may only send:
+---
+
+# Smart Batch Creation
+
+Instead of fixed-size batches, the script:
+
+- dynamically creates batches
+- respects Google Translate limits
+- maximizes throughput
+- reduces failures
+
+---
+
+# Retry + Backoff System
+
+If Google temporarily blocks requests:
+
+- retries automatically
+- uses exponential backoff
+- falls back to one-by-one translation if needed
+
+---
+
+# Translation Cache
+
+Translations are automatically saved into:
 
 ```text
-15,000 batch requests
+translation_cache.json
 ```
 
----
-
-# Example Output
-
-Input:
-
-| Product |
-|---|
-| Computer |
-| Keyboard |
-
-Output:
-
-| Product |
-|---|
-| کامپیوتر |
-| صفحه کلید |
+Benefits:
+- Resume interrupted translations
+- Avoid retranslating duplicates
+- Massive speed improvement
+- Safe recovery after crashes
 
 ---
 
-# Progress Bar
+# Resume Support
 
-Example:
+You can stop the script anytime.
+
+Next run will continue automatically using the cache.
+
+---
+
+# Performance
+
+Typical improvements:
+
+| Optimization | Effect |
+|---|---|
+| Async Translation | Huge speedup |
+| Smart Batching | Fewer requests |
+| Translation Cache | Avoid duplicate work |
+| Auto Text Detection | Reduces translation count |
+| Retry System | Better stability |
+
+---
+
+
+# Project Structure
 
 ```text
-Translating: 45%|█████████████ | 450/1000
+project/
+│
+├── Translator.py
 ```
 
 ---
 
-# Limitations
+# Example Workflow
 
-- Uses unofficial Google Translate access
-- Very large datasets may still take time
-- Google may temporarily rate limit requests
-- Formatting/styles are not preserved perfectly
+1. Load Excel
+2. Detect valid text automatically
+3. Remove already cached translations
+4. Create smart batches
+5. Translate asynchronously
+6. Save cache progressively
+7. Apply translations
+8. Export Persian Excel file
 
 ---
 
-# Recommended Improvements
+# Requirements
 
-For even better performance:
-
-- Convert `.xlsx` → `.csv`
-- Use paid APIs like:
-  - DeepL
-  - OpenAI
-  - Google Cloud Translation API
+- Python 3.9+
+- Internet connection
 
 ---
 
@@ -191,4 +276,4 @@ MIT License
 
 # Author
 
-Created for fast large-scale Excel translation workflows. Made by Love for Persian Community!
+Built for fast large-scale Excel translation workflows. Made with Love for Persian Community!
